@@ -1,4 +1,4 @@
-# Project Title: Inferring African wild dog behaviour using collar-mounted accelerometers
+# Inferring African wild dog behaviour using collar-mounted accelerometers
 
 This repository contains the code and associated files for the research project "Inferring African wild dog behaviour using collar-mounted accelerometers" conducted as part of the requirements for the Mres Biodviersity, Evolution and COnservation at UCL.
 
