@@ -1,0 +1,731 @@
+---
+title: "DD_Comparison"
+author: "Sophie Jones"
+date: "2024-03-11"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+```
+
+# Daily Diary Comparison
+
+
+## Johnnie vs Zulu Daily Diary Comparison 
+
+```{r include=FALSE}
+J_Z_Pair <- read.csv("J_Z_Pair .csv", na.strings = c("", "NA"))
+
+WDF147_WDM153_Pair <- read.csv("WDF147_WDM153_DD_Paired.csv", na.strings = c("", "NA"))
+
+```
+
+### Correlation and T-Test Analysis of VeDBA Smoothed Data
+
+```{r echo=FALSE}
+# Plot the correlation between the two collars
+plot(J_Z_Pair$J_VeDBA_smoothed_mean, J_Z_Pair$Z_VeDBA_smoothed_mean,
+     xlab = "Johnnie - Daily Diary", ylab = "Zulu - Daily Diary",
+     main = "Correlation between the two daily diary collars")
+```
+
+
+#### T-Test 
+
+The activity levels of the two dogs were quantitatively compared by analysing the VeDBA.smoothed_mean values, which were derived from accelerometry data collected by their respective tracking collars. A two-sample t-test was employed to evaluate whether a significant difference existed in the mean activity levels as measured by the VeDBA.smoothed_mean between the two devices.
+
+The statistical analysis revealed a t-value of 4.416 with 6314 degrees of freedom (df), indicating a pronounced divergence in the VeDBA.smoothed_mean (activity levels) between the collars. The associated p-value was determined to be 1.02e-05, which is substantially below the conventional threshold of $\alpha$ = 0.05. Such a low p-value suggests a low probability that the observed difference in mean activity levels arose by chance under the null hypothesis of equivalent means.
+
+Further supporting the significant discrepancy, the 95% confidence interval for the mean difference ranged from 0.0100497 to 0.0260959, which notably does not encompass zero. Mean activity levels for the first tracking collar (mean of x) were calculated at 0.1050817, surpassing those of the second collar (mean of y), which were 0.0870089. The positive t-statistic, coupled with the higher mean value for the first collar, indicates that the first dog exhibited a greater average activity level than the second.
+
+In conclusion, the results from the t-test provide strong evidence to reject the null hypothesis, implying that there is a statistically significant difference in the average activity levels as measured by the VeDBA.smoothed_mean between the two dog tracking collars. These findings suggest that the first collar consistently recorded higher activity levels than the second collar over the period of the observed period.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#T-Test 
+
+t_test_result <- t.test(J_Z_Pair$J_VeDBA_smoothed_mean, J_Z_Pair$Z_VeDBA_smoothed_mean, var.equal = TRUE)
+
+
+library(knitr)
+
+# Assuming you have already run the t-test and have the t_test_result object
+# Create a data frame with the t-test results
+t_test_results_df <- data.frame(
+  t_value = t_test_result$statistic,
+  degrees_of_freedom = t_test_result$parameter,
+  p_value = t_test_result$p.value,
+  conf_int_low = t_test_result$conf.int[1],
+  conf_int_high = t_test_result$conf.int[2],
+  mean_of_x = t_test_result$estimate[1],
+  mean_of_y = t_test_result$estimate[2]
+)
+
+# Print the table using kable
+knitr::kable(t_test_results_df, format = "markdown", caption = "T-Test Results")
+```
+#### Correlation Between Activity Levels
+
+Complementing the comparative analysis, the correlation coefficient was calculated to be 0.896, signifying a very strong positive linear relationship between the activity levels of the two dogs. This high degree of correlation suggests that activity levels, as quantified by VeDBA, are closely synchronised between the dogs; when one dog exhibits increased activity, the other tends to parallel this behavior with a high level of consistency.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Correlation Analysis 
+correlation_result <- cor(J_Z_Pair$J_VeDBA_smoothed_mean, J_Z_Pair$Z_VeDBA_smoothed_mean, method = "pearson") 
+
+
+# Print the result
+print(correlation_result)
+```
+
+### Behavioural Comparison
+
+An evaluation of behavioural patterns was performed for the two wild dogs using a Pearson's Chi-squared test to ascertain the potential association between the dogs and their respective behaviours, which were categorised into four behavioral states: rest, walk, trot, and run. The observational data were collated into a contingency table, displaying the frequency of each behaviour for both subjects in a cross-tabulated format.
+
+The Chi-squared analysis yielded a value of 3547.5 with 9 degrees of freedom. This markedly high Chi-squared value implies a significant deviation from the expected frequencies under the assumption of behavioural independence relative to dog identity. In other words, if both dogs exhibited similar behaviour distributions, we would expect different results.The corresponding p-value was reported to be < 2.2e-16, approaching zero, which conveys that the likelihood of achieving such a Chi-squared statistic by random fluctuation, under the null hypothesis of no association between the dogs and their exhibited behaviours, is virtually nil. Consequently, the null hypothesis is rejected, providing strong evidence for a statistically significant association between the dogs and their behaviour patterns.
+
+This significant result implies that the distribution of behaviours (rest, walk, trot, run) differs between the two dogs, thus confirming that the behaviours are not equally distributed across the two dogs. However, the Chi-squared test does not specify the nature of the association or indicate which behaviours are responsible for the significant result.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Create the contingency table
+contingency_table_2 <- table(J_Z_Pair$J_Most_Common_Behaviour, J_Z_Pair$Z_Most_Common_Behaviour)
+
+# Perform the Chi2 test
+J_Z_Beh_chi2_test <- chisq.test(contingency_table_2)
+
+library(knitr)
+
+# Assuming you have already run the Chi-squared test and have the J_Z_Beh_chi2_test object
+# Create a data frame with the Chi-squared test results
+chi2_test_results_df <- data.frame(
+  X_squared = J_Z_Beh_chi2_test$statistic,
+  degrees_of_freedom = J_Z_Beh_chi2_test$parameter,
+  p_value = J_Z_Beh_chi2_test$p.value
+)
+
+# Print the table using kable
+knitr::kable(chi2_test_results_df, format = "markdown", caption = "Chi-squared Test Results")
+```
+To further explore this association, standardised residuals were computed for each cell of the contingency table. Residuals greater than ±2.0 are generally considered indicative of cells contributing significantly to the chi-square statistic. In the present analysis, several behaviors exhibited standardised residuals exceeding this threshold. Notably, the behaviours "run" and "trot" showed the largest deviations from expected counts, with standardised residuals of 34.60 and 38.88, respectively. These figures suggest that these particular behaviours have the most substantial impact on the Chi-squared statistic and are central to the observed association between the dogs and their behaviour patterns.
+
+```{r include=FALSE}
+# Access the observed and expected values
+observed <- J_Z_Beh_chi2_test$observed
+expected <- J_Z_Beh_chi2_test$expected
+
+# Compute standardized residuals
+std_residuals <- (observed - expected) / sqrt(expected)
+
+# Print standardized residuals
+print(std_residuals)
+
+```
+```{r echo=FALSE}
+
+# Assuming you have a data frame 'residuals_df' with your standardized residuals
+J_Z_residuals_df <- data.frame(
+  Behavior = c("Rest", "Run", "Trot", "Walk"),
+  `Johnnie Residual` = c(2.963263, -2.388008, -6.511733, -2.771769),
+  `Zulu Residual` = c(-5.956083, 3.034905, 12.504684, 6.739295)
+)
+
+# Use kable from knitr to create a Markdown table
+kable(J_Z_residuals_df, format = "markdown", col.names = c("Behaviour", "Johnnie Residual", "Zulu Residual"), align = c('l', 'r', 'r'), caption = "Standardized Residuals")
+
+```
+
+#### Post-Hoc Analysis of Behavioural Categories 
+
+Following the initial Chi-squared test, post hoc pairwise comparisons were conducted using Fisher's Exact Test to discern the specific differences between the behaviour categories of resting, walking, trotting, and running. These comparisons aimed to identify which pairs of behaviours were statistically distinct from each other. The p-values obtained from these comparisons were subjected to the Bonferroni correction to account for the increased risk of Type I error due to multiple testing.
+
+The results of the post hoc analysis indicated significant differences between all pairs of behaviours. Notably, the behaviour comparison between resting and running yielded an adjusted p-value of 7.28e-78, which signifies an extremely significant difference between these two states of activity. Other pairwise comparisons, such as resting and trotting (adjusted p-value = 1.83e-220), resting and walking (adjusted p-value = 1.88e-64), running and trotting (adjusted p-value = 5.31e-18), running and walking (adjusted p-value = 7.04e-23), and trotting and walking (adjusted p-value = 1.17e-31), all revealed statistically significant distinctions.
+
+These results provide strong evidence that the observed behaviours are not distributed randomly but instead show specific patterns of association. However, the analysis confirms that the behaviours are not independent of each other between the two dogs.
+
+```{r include=FALSE}
+# Assuming your contingency table is named 'contingency_table'
+behavior_names <- colnames(contingency_table_2)
+
+# Initialize an empty list to store the results
+results <- list()
+
+# Bonferroni correction factor
+correction_factor <- choose(length(behavior_names), 2)
+
+# Loop over all unique pairs of behaviors
+for (i in 1:(length(behavior_names) - 1)) {
+  for (j in (i + 1):length(behavior_names)) {
+    # Construct a 2x2 table for the behaviors i and j
+    pairwise_table <- contingency_table_2[, c(i, j)]
+    
+    # Perform Fisher's Exact Test on the 2x2 table
+    fisher_result <- fisher.test(pairwise_table)
+    
+    # Adjust the p-value
+    p_value_adjusted <- min(1, fisher_result$p.value * correction_factor)
+    
+    # Store the results
+    results[[paste(behavior_names[i], "vs", behavior_names[j])]] <- list(
+      p_value = fisher_result$p.value,
+      p_value_adjusted = p_value_adjusted,
+      estimate = fisher_result$estimate,
+      conf_int = fisher_result$conf.int
+    )
+  }
+}
+
+# Print the results
+results
+```
+
+```{r echo=FALSE}
+# Assuming the comparison output is stored in a list named 'comparison_results'
+comparison_results_2 <- list(
+  `rest vs run` = list(
+    p_value = 1.212699e-78,
+    p_value_adjusted = 7.276193e-78
+  ),
+  `rest vs trot` = list(
+    p_value = 3.053702e-221,
+    p_value_adjusted = 1.832221e-220
+  ),
+  `rest vs walk` = list(
+    p_value = 3.137651e-65,
+    p_value_adjusted = 1.882591e-64
+  ),
+  `run vs trot` = list(
+    p_value = 8.849337e-19,
+    p_value_adjusted = 5.309602e-18
+  ),
+  `run vs walk` = list(
+    p_value = 1.172876e-23,
+    p_value_adjusted = 7.037257e-23
+  ),
+  `trot vs walk` = list(
+    p_value = 1.94832e-32,
+    p_value_adjusted = 1.168992e-31
+  )
+)
+
+# Create a data frame for the results, ensuring numbers are in scientific notation
+comparison_df_2 <- do.call(rbind, lapply(comparison_results_2, function(x) {
+  c(
+    p_value = format(x$p_value, scientific = TRUE),
+    p_value_adjusted = format(x$p_value_adjusted, scientific = TRUE)
+  )
+}))
+
+# Add row names to the data frame
+rownames(comparison_df_2) <- names(comparison_results_2)
+
+# Print the table using kable, specifying the column format to be text to preserve scientific notation
+knitr::kable(comparison_df_2, format = "markdown", col.names = c("p_value", "p_value_adjusted"), align = 'c', caption = "Comparison of p-values and Adjusted p-values")
+```
+
+
+### Synchrony in Behaviour
+
+In addition to the pairwise comparisons, the overall percentage of time spent in each behaviour category was calculated to assess the degree of synchrony between the dogs. The overall behavioural synchrony percentage for all behaviours combined was high, reported at 91.03579%. When broken down by individual behaviours, resting showed the highest synchrony at 92.29422%, while walking exhibited the lowest at 20.00000%. Trotting and running recorded intermediate synchrony percentages of 60.40000% and 46.25000%, respectively.
+
+These synchonrous values suggest a high degree of alignment in the resting behaviour and moderate to lower alignment in the more active behaviours. The variation in synchronous percentages between different behaviors underscores the complexity of the behavioural interactions and the influence of individual behavioural propensities.
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+J_Z_Pair <- na.omit(J_Z_Pair)
+
+# Group by Date and Time_Rounded and count occurrences of same behavior
+same_behavior_count <- J_Z_Pair %>%
+  group_by(Date, Time_Rounded) %>%
+  summarize(
+    Matching_Behavior_Count = sum(J_Most_Common_Behaviour == Z_Most_Common_Behaviour)
+  )
+
+# Calculate the total number of observations for each Date and Time_Rounded
+total_observations <- J_Z_Pair %>%
+  group_by(Date, Time_Rounded) %>%
+  summarize(
+    Total_Observations = n()
+  )
+
+# Merge the counts and total observations
+result <- merge(same_behavior_count, total_observations, by = c("Date", "Time_Rounded"))
+
+# Calculate the frequency of matching behaviors
+result$Matching_Behavior_Frequency <- result$Matching_Behavior_Count / result$Total_Observations
+
+# Calculate the total matching behavior count and total observations for the whole week
+total_matching_count <- sum(result$Matching_Behavior_Count)
+total_observations_week <- sum(result$Total_Observations)
+
+# Calculate the percentage for the whole week
+overall_percentage <- (total_matching_count / total_observations_week) * 100
+
+print(overall_percentage)
+
+```
+
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are resting together
+both_resting_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "rest" & Z_Most_Common_Behaviour == "rest") %>%
+  summarise(Both_Resting_Count = n())
+
+# Calculate the number of instances where at least one dog is resting
+at_least_one_resting_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "rest" | Z_Most_Common_Behaviour == "rest") %>%
+  summarise(At_Least_One_Resting_Count = n())
+
+# Calculate the percentage of time spent resting together out of the total time spent resting
+resting_together_percentage <- (both_resting_count$Both_Resting_Count / at_least_one_resting_count$At_Least_One_Resting_Count) * 100
+
+# Print the percentage
+print(resting_together_percentage)
+```
+ 
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are walking together
+both_walking_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "walk" & Z_Most_Common_Behaviour == "walk") %>%
+  summarise(Both_Walking_Count = n())
+
+# Calculate the number of instances where at least one dog is walking
+at_least_one_walking_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "walk" | Z_Most_Common_Behaviour == "walk") %>%
+  summarise(At_Least_One_Walking_Count = n())
+
+# Calculate the percentage of time spent walking together out of the total time spent walking
+walking_together_percentage <- (both_walking_count$Both_Walking_Count / at_least_one_walking_count$At_Least_One_Walking_Count) * 100
+
+# Print the percentage
+print(walking_together_percentage)
+```
+ 
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are trotting together
+both_trotting_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "trot" & Z_Most_Common_Behaviour == "trot") %>%
+  summarise(Both_Trotting_Count = n())
+
+# Calculate the number of instances where at least one dog is trotting
+at_least_one_trotting_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "trot" | Z_Most_Common_Behaviour == "trot") %>%
+  summarise(At_Least_One_Trotting_Count = n())
+
+# Calculate the percentage of time spent trotting together out of the total time spent trotting
+trotting_together_percentage <- (both_trotting_count$Both_Trotting_Count / at_least_one_trotting_count$At_Least_One_Trotting_Count) * 100
+
+# Print the percentage
+print(trotting_together_percentage)
+```
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are running together
+both_running_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "run" & Z_Most_Common_Behaviour == "run") %>%
+  summarise(Both_Running_Count = n())
+
+# Calculate the number of instances where at least one dog is running
+at_least_one_running_count <- J_Z_Pair %>%
+  filter(J_Most_Common_Behaviour == "run" | Z_Most_Common_Behaviour == "run") %>%
+  summarise(At_Least_One_Running_Count = n())
+
+# Calculate the percentage of time spent running together out of the total time spent running
+running_together_percentage <- (both_running_count$Both_Running_Count / at_least_one_running_count$At_Least_One_Running_Count) * 100
+
+# Print the percentage
+print(running_together_percentage)
+```
+```{r echo=FALSE}
+
+library(knitr)
+
+# Combine the percentages into a data frame
+behavior_percentages_df <- data.frame(
+  Behavior = c("Overall Percentage","Rest", "Walk", "Trot", "Run"),
+  Together_Percentage = c(overall_percentage, resting_together_percentage, walking_together_percentage, trotting_together_percentage, running_together_percentage)
+)
+
+# Print the table using kable
+knitr::kable(behavior_percentages_df, format = "markdown", caption = "Behaviour Together Percentages")
+```
+
+
+## WDF147 vs WDM153 Daily Diary Comparison 
+
+### Correlation and T-Test Analysis of VeDBA Smoothed Data
+
+```{r}
+# Plot the correlation between the two collars
+plot(WDF147_WDM153_Pair$WDF147_VeDBA_smoothed_mean, WDF147_WDM153_Pair$WDM153_VeDBA_smoothed_mean,
+     xlab = "WDF147 - Daily Diary", ylab = "WDM153 - Daily Diary",
+     main = "Correlation between the two daily diary collars")
+```
+
+
+#### T-Test
+
+The activity levels of the second pair of dogs were quantitatively compared by analysing the VeDBA.smoothed_mean values, which were derived from accelerometry data collected by their respective tracking collars. A two-sample t-test was employed to evaluate whether a significant difference existed in the mean activity levels as measured by the VeDBA.smoothed_mean between the two devices.
+
+The statistical analysis revealed a t-value of 6.967897 with 6312 degrees of freedom (df), indicating a pronounced divergence in the VeDBA.smoothed_mean (activity levels) between the collars. The associated p-value was determined to be 3.54e-12, which is substantially below the conventional threshold of $\alpha$ = 0.05. Such a low p-value suggests a low probability that the observed difference in mean activity levels arose by chance under the null hypothesis of equivalent means.
+
+Further supporting the significant discrepancy, the 95% confidence interval for the mean difference ranged from 0.0163695 to 0.0291861, which notably does not encompass zero. Mean activity levels for WDF147 (mean of x) were calculated at 0.1032608, surpassing those of WDM153 (mean of y), which were 0.080483. The positive t-statistic, coupled with the higher mean value for WDF147, indicates that this dog exhibited a greater average activity level than WDM153.
+
+In conclusion, the results from the t-test provide strong evidence to reject the null hypothesis, implying that there is a statistically significant difference in the average activity levels as measured by the VeDBA.smoothed_mean between the two dog tracking collars. These findings suggest that WDF147 consistently recorded higher activity levels than WDM153 over the period of the observed period.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#T-Test 
+
+t_test_result_2 <- t.test(WDF147_WDM153_Pair$WDF147_VeDBA_smoothed_mean, WDF147_WDM153_Pair$WDM153_VeDBA_smoothed_mean, var.equal = TRUE)
+
+
+t_test_summary_2 <- data.frame(
+  t_value = t_test_result_2$statistic,
+  df = t_test_result_2$parameter,
+  p_value = format(t_test_result_2$p.value, scientific = TRUE),
+  conf_int_low = t_test_result_2$conf.int[1],
+  conf_int_high = t_test_result_2$conf.int[2],
+  mean_of_x = t_test_result_2$estimate[1],
+  mean_of_y = t_test_result_2$estimate[2]
+)
+
+# Print the table using kable, with appropriate column names
+knitr::kable(t_test_summary_2, format = "markdown", col.names = c("T Value", "Degrees of Freedom", "P-Value", "Conf. Interval Low", "Conf. Interval High", "Mean of X", "Mean of Y"), caption = "Two Sample t-test Results")
+```
+
+#### Correlation Between Activity Levels
+
+Complementing the comparative analysis, the correlation coefficient for the second pair of dogs was calculated to be 0.498, signifying a moderate positive linear relationship between the activity levels of the two dogs. This degree of correlation suggests that activity levels, as quantified by VeDBA, are somewhat synchronised between the dogs; when one dog exhibits increased activity, the other tends to show an increase in its activity level, though not with the same consistency as a very strong correlation would indicate.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Correlation Analysis 
+correlation_result_2 <- cor(WDF147_WDM153_Pair$WDF147_VeDBA_smoothed_mean, WDF147_WDM153_Pair$WDM153_VeDBA_smoothed_mean, method = "pearson") 
+
+
+# Print the result
+print(correlation_result_2)
+```
+
+
+#### Behavioural Comparison Using Pearson’s Chi-Squared Test
+
+
+The behavior analysis comparing behaviours (rest, walk, trot, run) of WDF147 versus WDM153 yielded a chi-squared statistic of 554.82 with 9 degrees of freedom, showing a highly significant difference in behaviour distribution (p < 0.001; Table 7).
+
+
+Standardised residuals were calculated to identify behaviors that contributed to the significant result (Table 8). These residuals help to identify specific behaviours where the observed frequency is notably higher or lower than expected under the assumption of independent distributions of behaviours.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Create the contingency table
+contingency_table_4 <- table(WDF147_WDM153_Pair$WDF147_Most_Common_Behaviour, WDF147_WDM153_Pair$WDM153_Most_Common_Behaviour)
+
+# Perform the Chi2 test
+W_W_Beh_chi2_test <- chisq.test(contingency_table_4)
+
+
+chi_squared_test_result_2 <- list(
+  X_squared = 554.82,
+  df = 9,
+  p_value = "< 2.2e-16"
+)
+
+# Create a data frame for the result
+chi_squared_summary_2 <- data.frame(
+  X_squared = chi_squared_test_result_2$X_squared,
+  df = chi_squared_test_result_2$df,
+  p_value = chi_squared_test_result_2$p_value
+)
+
+# Print the table using kable, with appropriate column names
+knitr::kable(
+  chi_squared_summary_2,
+  format = "markdown",
+  col.names = c("Chi-squared", "Degrees of Freedom", "P-Value"),
+  caption = "Pearson's Chi-squared Test Results"
+)
+```
+In the standardised residuals table, notable deviations were observed in the trot behaviors for both dogs. WDM153 displayed a significantly higher frequency of trotting (residual = 12.504684) than expected, which was a standout finding of this analysis. This suggests that WDM153 trotted more than what would be expected if behaviours were distributed the same way in both dogs.
+
+The standardised residuals in other behaviors also show important differences. For example, the negative residual for WDF147 in trot (-6.511733) implies that WDF147 trotted less than expected compared to WDM153. Similarly, the positive residual for rest (2.963263) suggests that WDF147 rested more than what would be expected under the assumption of independence.
+
+In conclusion, the chi-squared test results, along with the analysis of standardised residuals, provide strong evidence that the behaviour patterns of WDF147 and WDM153 are significantly different. The analysis indicates that WDM153 was more active in trotting, while WDF147 exhibited behaviours like resting more frequently than WDM153.
+
+
+```{r include=FALSE}
+# Access the observed and expected values
+observed_2 <- W_W_Beh_chi2_test$observed
+expected_2 <- W_W_Beh_chi2_test$expected
+
+# Compute standardized residuals
+std_residuals_2 <- (observed_2 - expected_2) / sqrt(expected)
+
+# Print standardized residuals
+print(std_residuals_2)
+```
+```{r echo=FALSE}
+
+# Assuming you have a data frame 'residuals_df' with your standardized residuals
+residuals_df <- data.frame(
+  Behavior = c("Rest", "Run", "Trot", "Walk"),
+  `WDF147 Residual` = c(2.963263, -2.388008, -6.511733, -2.771769),
+  `WDM153 Residual` = c(-5.956083, 3.034905, 12.504684, 6.739295)
+)
+
+# Use kable from knitr to create a Markdown table
+kable(residuals_df, format = "markdown", col.names = c("Behavior", "WDF147 Residual", "WDM153 Residual"), align = c('l', 'r', 'r'), caption = "Standardized Residuals")
+
+```
+
+#### P-Value Comparisons
+
+
+A comparison of p-values and adjusted p-values for various activity pairings is presented in Table 9. The p-values indicate the probability of observing such extreme standardised residuals under the null hypothesis. The adjusted p-values account for multiple comparisons and provide a more conservative significance threshold. The activity comparisons "rest vs trot" and "rest vs walk" yielded extremely low p-values (p < 0.001), which remained significant after adjustment for multiple comparisons (p_adjusted < 0.001). Conversely, the comparisons "run vs trot" and "trot vs walk" did not maintain significance after p-value adjustment.
+
+These results provide strong evidence that the observed behaviors are not distributed randomly but instead show specific patterns of association. The analysis confirms that the behaviors are not independent of each other, highlighting distinct differences in the activity states between the two dogs.
+
+
+```{r include=FALSE}
+# Assuming your contingency table is named 'contingency_table'
+behavior_names_2 <- colnames(contingency_table_4)
+
+# Initialize an empty list to store the results
+results_2 <- list()
+
+# Bonferroni correction factor
+correction_factor_2 <- choose(length(behavior_names_2), 2)
+
+# Loop over all unique pairs of behaviors
+for (i in 1:(length(behavior_names_2) - 1)) {
+  for (j in (i + 1):length(behavior_names_2)) {
+    # Construct a 2x2 table for the behaviors i and j
+    pairwise_table_2 <- contingency_table_4[, c(i, j)]
+    
+    # Perform Fisher's Exact Test on the 2x2 table
+    fisher_result_2 <- fisher.test(pairwise_table_2)
+    
+    # Adjust the p-value
+    p_value_adjusted_2 <- min(1, fisher_result_2$p.value * correction_factor)
+    
+    # Store the results
+    results_2[[paste(behavior_names_2[i], "vs", behavior_names_2[j])]] <- list(
+      p_value = fisher_result_2$p.value,
+      p_value_adjusted = p_value_adjusted,
+      estimate = fisher_result_2$estimate,
+      conf_int = fisher_result_2$conf.int
+    )
+  }
+}
+
+# Print the results
+results_2
+```
+
+
+```{r echo=FALSE}
+# Assuming the comparison output is stored in a list named 'comparison_results'
+comparison_results_3 <- list(
+  `rest vs run` = list(
+    p_value = 3.311114e-14,
+    p_value_adjusted = 1.168992e-31
+  ),
+  `rest vs trot` = list(
+    p_value = 3.377723e-50,
+    p_value_adjusted = 1.168992e-31
+  ),
+  `rest vs walk` = list(
+    p_value = 4.551613e-32,
+    p_value_adjusted = 1.168992e-31
+  ),
+  `run vs trot` = list(
+    p_value = 0.1521622,
+    p_value_adjusted = 1.168992e-31
+  ),
+  `run vs walk` = list(
+    p_value = 0.006156398,
+    p_value_adjusted = 1.168992e-31
+  ),
+  `trot vs walk` = list(
+    p_value = 0.06276834,
+    p_value_adjusted = 1.168992e-31
+  )
+)
+
+# Create a data frame for the results, ensuring numbers are in scientific notation
+comparison_df_3 <- do.call(rbind, lapply(comparison_results_3, function(x) {
+  c(
+    p_value = format(x$p_value, scientific = TRUE),
+    p_value_adjusted = format(x$p_value_adjusted, scientific = TRUE)
+  )
+}))
+
+# Add row names to the data frame
+rownames(comparison_df_3) <- names(comparison_results_3)
+
+# Print the table using kable, specifying the column format to be text to preserve scientific notation
+knitr::kable(comparison_df_3, format = "markdown", col.names = c("p_value", "p_value_adjusted"), align = 'c', caption = "Comparison of p-values and Adjusted p-values")
+```
+
+
+
+#### Percentage of Time Spent in Same Behaviours
+
+
+The overall percentage of time that WDF147 and WDM153 spent engaging in the same behaviors was 80.55%. When broken down into specific behaviours, the subjects spent 83.13% of the time resting, 8.03% walking, 15.76% trotting, and 3.12% running concurrently (Table 10). This information provides insight into the behavioural synchrony of the subjects across the different activity types. These percentages reflect a strong alignment in less active states and less synchrony in higher activities, highlighting differences in the dogs' interactions and responses to various stimuli.
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+WDF147_WDM153_Pair <- na.omit(WDF147_WDM153_Pair)
+
+# Group by Date and Time_Rounded and count occurrences of same behavior
+WDF147_WDM153_same_behavior_count <- WDF147_WDM153_Pair %>%
+  group_by(Date, Time_Rounded) %>%
+  summarize(
+    Matching_Behavior_Count = sum(WDF147_Most_Common_Behaviour == WDM153_Most_Common_Behaviour)
+  )
+
+# Calculate the total number of observations for each Date and Time_Rounded
+WDF147_WDM153_total_observations <- WDF147_WDM153_Pair %>%
+  group_by(Date, Time_Rounded) %>%
+  summarize(
+    Total_Observations = n()
+  )
+
+# Merge the counts and total observations
+WDF147_WDM153_result <- merge(WDF147_WDM153_same_behavior_count, WDF147_WDM153_total_observations, by = c("Date", "Time_Rounded"))
+
+# Calculate the frequency of matching behaviors
+WDF147_WDM153_result$Matching_Behavior_Frequency <- WDF147_WDM153_result$Matching_Behavior_Count / WDF147_WDM153_result$Total_Observations
+
+# Calculate the total matching behavior count and total observations for the whole week
+WDF147_WDM153_total_matching_count <- sum(WDF147_WDM153_result$Matching_Behavior_Count)
+WDF147_WDM153_total_observations_week <- sum(WDF147_WDM153_result$Total_Observations)
+
+# Calculate the percentage for the whole week
+WDF147_WDM153_overall_percentage <- (WDF147_WDM153_total_matching_count / WDF147_WDM153_total_observations_week) * 100
+
+print(WDF147_WDM153_overall_percentage)
+
+```
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are resting together
+W_both_resting_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "rest" & WDM153_Most_Common_Behaviour == "rest") %>%
+  summarise(Both_Resting_Count = n())
+
+# Calculate the number of instances where at least one dog is resting
+W_at_least_one_resting_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "rest" | WDM153_Most_Common_Behaviour == "rest") %>%
+  summarise(At_Least_One_Resting_Count = n())
+
+# Calculate the percentage of time spent resting together out of the total time spent resting
+W_resting_together_percentage <- (W_both_resting_count$Both_Resting_Count / W_at_least_one_resting_count$At_Least_One_Resting_Count) * 100
+
+# Print the percentage
+print(W_resting_together_percentage)
+```
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are walking together
+W_both_walking_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "walk" & WDM153_Most_Common_Behaviour == "walk") %>%
+  summarise(Both_Walking_Count = n())
+
+# Calculate the number of instances where at least one dog is walking
+W_at_least_one_walking_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "walk" | WDM153_Most_Common_Behaviour == "walk") %>%
+  summarise(At_Least_One_Walking_Count = n())
+
+# Calculate the percentage of time spent walking together out of the total time spent walking
+W_walking_together_percentage <- (W_both_walking_count$Both_Walking_Count / W_at_least_one_walking_count$At_Least_One_Walking_Count) * 100
+
+# Print the percentage
+print(W_walking_together_percentage)
+```
+
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are trotting together
+W_both_trotting_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "trot" & WDM153_Most_Common_Behaviour == "trot") %>%
+  summarise(Both_Trotting_Count = n())
+
+# Calculate the number of instances where at least one dog is trotting
+W_at_least_one_trotting_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "trot" | WDM153_Most_Common_Behaviour == "trot") %>%
+  summarise(At_Least_One_Trotting_Count = n())
+
+# Calculate the percentage of time spent trotting together out of the total time spent trotting
+W_trotting_together_percentage <- (W_both_trotting_count$Both_Trotting_Count / W_at_least_one_trotting_count$At_Least_One_Trotting_Count) * 100
+
+# Print the percentage
+print(W_trotting_together_percentage)
+```
+
+
+```{r include=FALSE}
+library(dplyr)
+
+# Calculate the number of instances where both dogs are running together
+W_both_running_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "run" & WDM153_Most_Common_Behaviour == "run") %>%
+  summarise(Both_Running_Count = n())
+
+# Calculate the number of instances where at least one dog is running
+W_at_least_one_running_count <- WDF147_WDM153_Pair %>%
+  filter(WDF147_Most_Common_Behaviour == "run" | WDM153_Most_Common_Behaviour == "run") %>%
+  summarise(At_Least_One_Running_Count = n())
+
+# Calculate the percentage of time spent running together out of the total time spent running
+W_running_together_percentage <- (W_both_running_count$Both_Running_Count / W_at_least_one_running_count$At_Least_One_Running_Count) * 100
+
+# Print the percentage
+print(W_running_together_percentage)
+```
+
+
+```{r echo=FALSE}
+library(knitr)
+
+# Combine the percentages into a data frame
+behavior_percentages_df_2 <- data.frame(
+  Behavior = c("Overall Percentage","Rest", "Walk", "Trot", "Run"),
+  Together_Percentage = c(WDF147_WDM153_overall_percentage, W_resting_together_percentage, W_walking_together_percentage, W_trotting_together_percentage, W_running_together_percentage)
+)
+
+# Print the table using kable
+knitr::kable(behavior_percentages_df_2, format = "markdown", caption = "Behaviour Together Percentages")
+```
+
+## Conclusions 
+
+### VeDBA Comparison Conclusions
+
+Both pairs of dogs show statistically significant differences in activity levels as measured by VeDBA.smoothed_mean, with one dog in each pair being more active than the other. There is evidence of synchronisation in activity patterns between the dogs in each pair, albeit to varying degrees. The first pair exhibits very strong synchronisation, while the second pair shows only moderate synchronisation.
+
+### Behavioural Comparison Conclusions
+
+The investigation into the daily behaviors of wild dogs, as recorded by their respective diary collars, reveals distinct differences in behavioural patterns between individual dogs. Through the application of a Pearson’s Chi-squared test, significant associations between dog identities and their behaviours—categorised as rest, walk, trot, and run—were established.The behavioural patterns of the dogs under study are markedly individualised, with certain behaviors demonstrating stronger associations with specific dogs. 
+
+### Behavioural Synchrony Conclusions 
+
+The behavioural synchrony between both pairs of dogs differed quite significantly with Johnnie and Zuma having an overall shared value of 91.03579% and WDF147 and WDM153 having the overall value of 80.55%. This difference was shown particularly in the active behaviours. WDF147 and WDM153 showed low synchrony for active behaviours: walking (8.03%), trotting (15.76%), and running (3.12%). Johnnie and Zulu showed a higher synchrony for active behaviours: walking (20%), trotting (60%), and running (46.25%). This variation suggests that it may be difficult to predict that the dogs are doing the same things at the same time within a pack. 
